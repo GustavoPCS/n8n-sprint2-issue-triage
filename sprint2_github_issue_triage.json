@@ -1,0 +1,1302 @@
+{
+  "name": "Sprint 2 — GitHub Issue Triage",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "de72f69c-59f9-4d7b-b9c8-0ddc5c79f552",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "opened",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "14bae02a-5678-4af0-9ee1-09845a6857c1",
+      "name": "Opened action?"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sprint2-issue-triage",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1c540e9f-7dff-4221-9bfc-a1a222cf7f6e",
+      "name": "GitHub issue webhook",
+      "webhookId": "dbafa6a8-3099-495d-af87-f6d8d4ae6ad6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "431d224c-d2b4-4098-ac5e-e362b98fa6a1",
+              "name": "repository_full_name",
+              "value": "={{ $json.body.repository.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "f4613253-ec59-4360-a9c4-47734432a82c",
+              "name": "issue_number",
+              "value": "={{ $json.body.issue.number }}",
+              "type": "string"
+            },
+            {
+              "id": "da84d812-47d0-48ec-9636-1963e15e1863",
+              "name": "issue_key",
+              "value": "={{ $json.body.repository.full_name + \"#\" + $json.body.issue.number }}",
+              "type": "string"
+            },
+            {
+              "id": "94bb9bbf-c71d-4bc7-9e29-8f0001175535",
+              "name": "issue_url",
+              "value": "={{ $json.body.issue.html_url }}",
+              "type": "string"
+            },
+            {
+              "id": "4fb5f382-7ebd-4610-907c-bbf8db1d09cd",
+              "name": "title",
+              "value": "={{ $json.body.issue.title }}",
+              "type": "string"
+            },
+            {
+              "id": "357060ce-87a9-43f4-9b5a-52479a26fc9c",
+              "name": "title_lower",
+              "value": "={{ $json.body.issue.title.toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "cdf263a9-e64e-4f1a-aad7-f2d92e678f10",
+              "name": "reporter",
+              "value": "={{ $json.body.issue.user.login }}",
+              "type": "string"
+            },
+            {
+              "id": "36c1d5af-6868-414d-8ccf-c1eca0e6c528",
+              "name": "opened_at",
+              "value": "={{ $json.body.issue.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "5dc6b817-f100-4f33-841d-583ca7ce8c7c",
+              "name": "last_seen_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "87849f25-ac6b-4c06-9047-97ff6b15929e",
+      "name": "Normalize issue"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.title_lower }}",
+                    "rightValue": "\\b(bug|error)\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "id": "0fbbd901-d958-49f2-b713-ee5ed6d0ff1e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ceeeb468-3c71-468a-bdbd-db697ae3d0ef",
+                    "leftValue": "={{ $json.title_lower }}",
+                    "rightValue": "\\b(feature|request)\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "22b2b0dc-d2cd-46ac-95e8-2202edc3dacf",
+                    "leftValue": "={{ $json.title_lower }}",
+                    "rightValue": "\\b(help|question)\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "8408d60f-64a5-4c95-9cb2-dd730a112dc3",
+      "name": "Classify title"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0a88b8a9-3c6b-4972-acf9-c59bbb669274",
+              "name": "catergory",
+              "value": "bug",
+              "type": "string"
+            },
+            {
+              "id": "bfba77be-3f59-40cb-b9fa-aa39837258ef",
+              "name": "route_name",
+              "value": "bug-triage",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        848,
+        -320
+      ],
+      "id": "49184de7-5936-4e2c-ac9e-57c222b73565",
+      "name": "Set bug route"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0ecc603-cfdd-47c9-8bbd-9731eccc9164",
+              "name": "category",
+              "value": "feature",
+              "type": "string"
+            },
+            {
+              "id": "ad03f23c-66d7-42df-9182-2a68b9e02851",
+              "name": "route_name",
+              "value": "feature-requests",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        848,
+        -160
+      ],
+      "id": "e29f00eb-907b-462e-8d64-e8d4e1a4fa9d",
+      "name": "Set feature route"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7cd5f23-eb44-418e-a6de-9a00962f2e30",
+              "name": "category",
+              "value": "help",
+              "type": "string"
+            },
+            {
+              "id": "fcfb6526-f3db-4a52-acf0-69e55a594274",
+              "name": "route_name",
+              "value": "support",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        848,
+        0
+      ],
+      "id": "c75f6ce2-4583-4571-a74f-38eb4a307c94",
+      "name": "Set help route"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e47e5eb-2dda-4d7a-8a0b-0bd20c57db74",
+              "name": "category",
+              "value": "other",
+              "type": "string"
+            },
+            {
+              "id": "77ee5add-98c5-4629-9516-1ab2775bc0e8",
+              "name": "route_name",
+              "value": "general-triage",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        848,
+        160
+      ],
+      "id": "f6f7a029-96d9-42a4-a83a-39b6261a4f51",
+      "name": "Set other route"
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "SPAg8jjlM8n0kx6Z",
+          "mode": "list",
+          "cachedResultName": "github_issue_ledger",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/SPAg8jjlM8n0kx6Z"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "issue_key",
+              "keyValue": "={{ $json.issue_key }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1312,
+        -208
+      ],
+      "id": "1ec48d1b-6d46-41d1-b57d-140de660195f",
+      "name": "If ledger row exists"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "SPAg8jjlM8n0kx6Z",
+          "mode": "list",
+          "cachedResultName": "github_issue_ledger",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/SPAg8jjlM8n0kx6Z"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "issue_key",
+              "keyValue": "={{ $json.issue_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "last_seen_at": "={{ $json.last_seen_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "issue_url",
+              "displayName": "issue_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reporter",
+              "displayName": "reporter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "opened_at",
+              "displayName": "opened_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_seen_at",
+              "displayName": "last_seen_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_log_status",
+              "displayName": "route_log_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_name",
+              "displayName": "route_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_note",
+              "displayName": "error_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        -208
+      ],
+      "id": "46d4d893-c378-4c0b-b65e-f9a0755408a6",
+      "name": "Update existing last seen"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "SPAg8jjlM8n0kx6Z",
+          "mode": "list",
+          "cachedResultName": "github_issue_ledger",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/SPAg8jjlM8n0kx6Z"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "issue_key",
+              "keyValue": "={{ $json.issue_key }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1312,
+        16
+      ],
+      "id": "99e594d9-039f-4f89-b814-b5764d3a4831",
+      "name": "If ledger row does not exist"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "SPAg8jjlM8n0kx6Z",
+          "mode": "list",
+          "cachedResultName": "github_issue_ledger",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/SPAg8jjlM8n0kx6Z"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "issue_key": "={{ $json.issue_key }}",
+            "issue_url": "={{ $json.issue_url }}",
+            "title": "={{ $json.title }}",
+            "category": "={{ $json.category }}",
+            "reporter": "={{ $json.reporter }}",
+            "opened_at": "={{ $json.opened_at }}",
+            "last_seen_at": "={{ $json.last_seen_at }}",
+            "route_log_status": "pending",
+            "route_name": "={{ $json.route_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "issue_url",
+              "displayName": "issue_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reporter",
+              "displayName": "reporter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "opened_at",
+              "displayName": "opened_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_seen_at",
+              "displayName": "last_seen_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_log_status",
+              "displayName": "route_log_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_name",
+              "displayName": "route_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_note",
+              "displayName": "error_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        16
+      ],
+      "id": "17193606-f58c-460b-9b6c-ae0ec93219a5",
+      "name": "Insert pending ledger row"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c333cf50-13f2-4e34-99d1-469408f267fa",
+              "leftValue": "={{ $json.title_lower }}",
+              "rightValue": "intentional route-log failure test",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1728,
+        16
+      ],
+      "id": "31a7dd3f-a21a-4a75-81b0-1412d7a3d62f",
+      "name": "Intentional failure test?"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "7s5I0DU81tRSRcae",
+          "mode": "list",
+          "cachedResultName": "github_issue_route_log",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/7s5I0DU81tRSRcae"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "issue_key": "={{ $json.issue_key }}",
+            "category": "={{ $json.category }}",
+            "route_name": "={{ $json.route_name }}",
+            "recorded_at": "={{ $json.last_seen_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_name",
+              "displayName": "route_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recorded_at",
+              "displayName": "recorded_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1952,
+        112
+      ],
+      "id": "6aab6cb9-3e95-46a9-9f73-a63649662453",
+      "name": "Record internal route",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "SPAg8jjlM8n0kx6Z",
+          "mode": "list",
+          "cachedResultName": "github_issue_ledger",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/SPAg8jjlM8n0kx6Z"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "issue_key",
+              "keyValue": "={{ $('Insert pending ledger row').item.json.issue_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "route_log_status": "recorded",
+            "error_note": "-"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "issue_url",
+              "displayName": "issue_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "reporter",
+              "displayName": "reporter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "opened_at",
+              "displayName": "opened_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "last_seen_at",
+              "displayName": "last_seen_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "route_log_status",
+              "displayName": "route_log_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_name",
+              "displayName": "route_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "error_note",
+              "displayName": "error_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2176,
+        112
+      ],
+      "id": "70766a6d-087c-4c28-affa-cdddfba61a7f",
+      "name": "Update route-log recorded"
+    },
+    {
+      "parameters": {
+        "jsCode": "throw new Error('Intentional course test: route-log failure');"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        -80
+      ],
+      "id": "55827567-0e06-4feb-828a-150ee289b36d",
+      "name": "Simulate route-log failure",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "SPAg8jjlM8n0kx6Z",
+          "mode": "list",
+          "cachedResultName": "github_issue_ledger",
+          "cachedResultUrl": "/projects/SHKGwZHCZS94RLu3/datatables/SPAg8jjlM8n0kx6Z"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "issue_key",
+              "keyValue": "={{ $('Insert pending ledger row').item.json.issue_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "route_log_status": "failed",
+            "error_note": " Route-log write failed; review the route-log node configuration and execution details."
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "issue_url",
+              "displayName": "issue_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "reporter",
+              "displayName": "reporter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "opened_at",
+              "displayName": "opened_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "last_seen_at",
+              "displayName": "last_seen_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "route_log_status",
+              "displayName": "route_log_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "route_name",
+              "displayName": "route_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "error_note",
+              "displayName": "error_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2176,
+        336
+      ],
+      "id": "ca67f0c2-3b3d-436a-96a1-0b70187b0854",
+      "name": "Update route-log failed"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GitHub issue webhook": {
+      "main": [
+        [
+          {
+            "node": "Opened action?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Opened action?": {
+      "main": [
+        [
+          {
+            "node": "Normalize issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize issue": {
+      "main": [
+        [
+          {
+            "node": "Classify title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify title": {
+      "main": [
+        [
+          {
+            "node": "Set bug route",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set feature route",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set help route",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set other route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If ledger row exists": {
+      "main": [
+        [
+          {
+            "node": "Update existing last seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set bug route": {
+      "main": [
+        [
+          {
+            "node": "If ledger row exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If ledger row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set feature route": {
+      "main": [
+        [
+          {
+            "node": "If ledger row exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If ledger row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set help route": {
+      "main": [
+        [
+          {
+            "node": "If ledger row exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If ledger row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set other route": {
+      "main": [
+        [
+          {
+            "node": "If ledger row exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If ledger row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If ledger row does not exist": {
+      "main": [
+        [
+          {
+            "node": "Insert pending ledger row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert pending ledger row": {
+      "main": [
+        [
+          {
+            "node": "Intentional failure test?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intentional failure test?": {
+      "main": [
+        [
+          {
+            "node": "Simulate route-log failure",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record internal route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record internal route": {
+      "main": [
+        [
+          {
+            "node": "Update route-log recorded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update route-log failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update route-log recorded": {
+      "main": [
+        []
+      ]
+    },
+    "Simulate route-log failure": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Update route-log failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7f73eeb6-34f4-4a31-9794-30c7474326f0",
+  "meta": {
+    "instanceId": "f1a067416537ffb05ed4aa6d782c66bf62d176f9d9355df544d2ab52e55800b9"
+  },
+  "nodeGroups": [],
+  "id": "uR2WkSi7spM60YVZ",
+  "tags": []
+}
